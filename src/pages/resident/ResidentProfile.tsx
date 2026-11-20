@@ -199,7 +199,7 @@ const ResidentProfilePage: React.FC = () => {
                 <IonLabel>
                   <p style={{ fontSize: '11px', color: '#64748b' }}>Monthly Rent & Due Day</p>
                   <h4 style={{ fontWeight: '700', color: '#16a34a' }}>
-                    ₹{profile?.monthlyRent?.toLocaleString('en-IN') || '14,000'} / month
+                    ₹{(profile?.monthlyRent ?? 0).toLocaleString('en-IN')} / month
                   </h4>
                   <small style={{ color: '#64748b' }}>Due on 5th of every month</small>
                 </IonLabel>
@@ -210,9 +210,9 @@ const ResidentProfilePage: React.FC = () => {
                 <IonLabel>
                   <p style={{ fontSize: '11px', color: '#64748b' }}>Security Deposit</p>
                   <h4 style={{ fontWeight: '700' }}>
-                    ₹{profile?.securityDepositPaid?.toLocaleString('en-IN') || '25,000'} Paid
+                    ₹{(profile?.securityDepositPaid ?? 0).toLocaleString('en-IN')} Paid
                   </h4>
-                  <small style={{ color: '#64748b' }}>Total Required: ₹{profile?.securityDeposit?.toLocaleString('en-IN') || '25,000'}</small>
+                  <small style={{ color: '#64748b' }}>Total Required: ₹{(profile?.securityDeposit ?? 0).toLocaleString('en-IN')}</small>
                 </IonLabel>
               </IonItem>
             </IonList>

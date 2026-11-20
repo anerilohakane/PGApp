@@ -20,8 +20,9 @@ import {
   IonToast,
   IonSearchbar,
   IonButtons,
+  IonLoading,
 } from '@ionic/react';
-import { addOutline, businessOutline, eyeOutline, eyeOffOutline, mailOutline, lockClosedOutline, documentAttachOutline, cloudUploadOutline, checkmarkCircleOutline, closeOutline, closeCircleOutline } from 'ionicons/icons';
+import { addOutline, businessOutline, eyeOutline, eyeOffOutline, mailOutline, lockClosedOutline, documentAttachOutline, cloudUploadOutline, checkmarkCircleOutline, closeOutline, closeCircleOutline, copyOutline } from 'ionicons/icons';
 import { residentService, propertyService, roomService } from '../../services';
 import { useHistory } from 'react-router-dom';
 
@@ -35,6 +36,7 @@ const AdminResidents: React.FC = () => {
   const [selectedResidentForCheckout, setSelectedResidentForCheckout] = useState<any>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [createdCredentials, setCreatedCredentials] = useState<{
     email: string;
     password: string;
@@ -140,6 +142,8 @@ const AdminResidents: React.FC = () => {
 
   const handleRegisterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmitting) return;
+
     if (!formData.roomId) {
       setToastMessage('Please select a room. If no rooms are available, add rooms first.');
       return;
@@ -147,24 +151,30 @@ const AdminResidents: React.FC = () => {
     const chosenRoom = rooms.find((r) => r._id === formData.roomId);
     const roomLabel = chosenRoom ? chosenRoom.roomNumber : '';
     const assignedPassword = formData.password.trim() || 'Resident@123';
+    const regName = formData.fullName;
+    const regEmail = formData.email;
 
+    setIsSubmitting(true);
     try {
       const res: any = await residentService.register({
         ...formData,
         password: assignedPassword,
         occupancyType: formData.occupancyType === 'Single' ? 'Full Room' : 'Shared',
       });
-      setToastMessage('Resident registered & login credentials dispatched!');
+      
+      // Close registration modal first
       setModalOpen(false);
       
-      // Show confirmation dialog with credentials
+      // Open confirmation dialog immediately with full credentials
       setCreatedCredentials({
-        name: formData.fullName,
-        email: formData.email,
+        name: regName,
+        email: regEmail,
         password: assignedPassword,
         room: roomLabel,
         emailSent: res?.emailSent !== false,
       });
+
+      setToastMessage('Resident registered successfully!');
 
       // Reset form
       setFormData({
@@ -193,10 +203,13 @@ const AdminResidents: React.FC = () => {
         panCardFile: null,
       });
 
-      await loadResidents();
-      await loadPropertiesAndRooms();
+      // Background reload so modal doesn't wait
+      loadResidents();
+      loadPropertiesAndRooms();
     } catch (err: any) {
       setToastMessage(err.response?.data?.error || 'Registration failed');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -342,8 +355,8 @@ const AdminResidents: React.FC = () => {
               </IonButtons>
             </IonToolbar>
           </IonHeader>
-          <IonContent className="ion-padding">
-            <form onSubmit={handleRegisterSubmit}>
+          <IonContent className="ion-padding" style={{ '--padding-bottom': 'calc(env(safe-area-inset-bottom, 24px) + 50px)' }}>
+            <form onSubmit={handleRegisterSubmit} style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 24px) + 50px)' }}>
               <IonItem lines="inset" style={{ '--padding-start': '0' }}>
                 <IonLabel position="stacked">Full Name *</IonLabel>
                 <IonInput
@@ -744,9 +757,9 @@ const AdminResidents: React.FC = () => {
                 type="submit"
                 color="primary"
                 style={{ marginTop: '24px', height: '48px' }}
-                disabled={rooms.length === 0}
+                disabled={rooms.length === 0 || isSubmitting}
               >
-                Confirm Registration
+                {isSubmitting ? 'Registering Resident...' : 'Confirm Registration'}
               </IonButton>
             </form>
           </IonContent>
@@ -765,9 +778,9 @@ const AdminResidents: React.FC = () => {
               </IonButtons>
             </IonToolbar>
           </IonHeader>
-          <IonContent className="ion-padding">
+          <IonContent className="ion-padding" style={{ '--padding-bottom': 'calc(env(safe-area-inset-bottom, 24px) + 50px)' }}>
             {selectedResidentForCheckout && (
-              <form onSubmit={handleCheckoutSubmit}>
+              <form onSubmit={handleCheckoutSubmit} style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 24px) + 50px)' }}>
                 <h3>{selectedResidentForCheckout.fullName}</h3>
                 <p style={{ fontSize: '13px', color: '#64748b' }}>
                   Releasing room occupancy and settling security deposit.
@@ -828,9 +841,9 @@ const AdminResidents: React.FC = () => {
               </IonButtons>
             </IonToolbar>
           </IonHeader>
-          <IonContent className="ion-padding">
+          <IonContent className="ion-padding" style={{ '--padding-bottom': 'calc(env(safe-area-inset-bottom, 24px) + 50px)' }}>
             {createdCredentials && (
-              <div style={{ textAlign: 'center', padding: '16px 8px' }}>
+              <div style={{ textAlign: 'center', padding: '16px 8px', paddingBottom: 'calc(env(safe-area-inset-bottom, 24px) + 50px)' }}>
                 <div style={{ fontSize: '48px', marginBottom: '8px' }}>🎉</div>
                 <h2 style={{ fontWeight: '800', color: '#0f172a', margin: '0 0 8px 0' }}>
                   Resident Account Created!
@@ -866,8 +879,22 @@ const AdminResidents: React.FC = () => {
 
                   <div style={{ marginBottom: '12px' }}>
                     <div style={{ fontSize: '11px', color: '#94a3b8' }}>LOGIN PASSWORD</div>
-                    <div style={{ fontSize: '16px', fontWeight: '800', color: '#16a34a', fontFamily: 'monospace' }}>
-                      {createdCredentials.password}
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <div style={{ fontSize: '18px', fontWeight: '800', color: '#16a34a', fontFamily: 'monospace', letterSpacing: '0.05em' }}>
+                        {createdCredentials.password}
+                      </div>
+                      <IonButton
+                        size="small"
+                        fill="clear"
+                        color="secondary"
+                        onClick={() => {
+                          navigator.clipboard.writeText(createdCredentials.password);
+                          setToastMessage('Password copied to clipboard!');
+                        }}
+                      >
+                        <IonIcon icon={copyOutline} slot="start" />
+                        Copy
+                      </IonButton>
                     </div>
                   </div>
 
@@ -905,6 +932,7 @@ const AdminResidents: React.FC = () => {
           </IonContent>
         </IonModal>
 
+        <IonLoading isOpen={isSubmitting} message="Registering resident & saving credentials..." />
         <IonToast
           isOpen={!!toastMessage}
           message={toastMessage || ''}

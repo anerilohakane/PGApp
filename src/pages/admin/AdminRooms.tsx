@@ -251,8 +251,8 @@ const AdminRooms: React.FC = () => {
               </IonButtons>
             </IonToolbar>
           </IonHeader>
-          <IonContent className="ion-padding">
-            <form onSubmit={handleCreateRoom}>
+          <IonContent className="ion-padding" style={{ '--padding-bottom': 'calc(env(safe-area-inset-bottom, 24px) + 50px)' }}>
+            <form onSubmit={handleCreateRoom} style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 24px) + 50px)' }}>
               <IonItem lines="inset" style={{ '--padding-start': '0' }}>
                 <IonLabel position="stacked">Room Number *</IonLabel>
                 <IonInput
@@ -336,8 +336,8 @@ const AdminRooms: React.FC = () => {
               </IonButtons>
             </IonToolbar>
           </IonHeader>
-          <IonContent className="ion-padding">
-            <form onSubmit={handleCreateProperty}>
+          <IonContent className="ion-padding" style={{ '--padding-bottom': 'calc(env(safe-area-inset-bottom, 24px) + 50px)' }}>
+            <form onSubmit={handleCreateProperty} style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 24px) + 50px)' }}>
               <IonItem lines="inset" style={{ '--padding-start': '0' }}>
                 <IonLabel position="stacked">PG Property Name *</IonLabel>
                 <IonInput

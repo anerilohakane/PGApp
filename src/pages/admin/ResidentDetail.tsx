@@ -21,6 +21,9 @@ import {
   IonCol,
   IonSegment,
   IonSegmentButton,
+  IonModal,
+  IonInput,
+  IonToast,
 } from '@ionic/react';
 import {
   callOutline,
@@ -36,15 +39,31 @@ import {
   alertCircleOutline,
   checkmarkCircleOutline,
   openOutline,
+  keyOutline,
+  lockClosedOutline,
+  copyOutline,
+  eyeOutline,
+  eyeOffOutline,
+  closeOutline,
 } from 'ionicons/icons';
 import { useParams, useHistory } from 'react-router-dom';
-import { residentService, documentService } from '../../services';
+import { residentService, documentService, depositService } from '../../services';
 
 const ResidentDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [resident, setResident] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'profile' | 'financials' | 'documents'>('profile');
+  const [resetModalOpen, setResetModalOpen] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [resetting, setResetting] = useState(false);
+  const [depositModalOpen, setDepositModalOpen] = useState(false);
+  const [depositAmount, setDepositAmount] = useState<number | string>('');
+  const [depositMethod, setDepositMethod] = useState<'Cash' | 'UPI' | 'Bank Transfer'>('Cash');
+  const [depositRef, setDepositRef] = useState('');
+  const [recordingDeposit, setRecordingDeposit] = useState(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
   const history = useHistory();
 
   useEffect(() => {
@@ -59,6 +78,58 @@ const ResidentDetail: React.FC = () => {
       console.error(err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newPassword.trim()) {
+      setToastMessage('Please enter a new password');
+      return;
+    }
+    setResetting(true);
+    try {
+      await residentService.update(id, { password: newPassword.trim() });
+      setToastMessage(`Password updated successfully to: ${newPassword.trim()}`);
+      setResetModalOpen(false);
+      setNewPassword('');
+    } catch (err: any) {
+      setToastMessage(err.response?.data?.error || 'Failed to update password');
+    } finally {
+      setResetting(false);
+    }
+  };
+
+  const handleRecordDeposit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const amt = Number(depositAmount);
+    if (!amt || amt <= 0) {
+      setToastMessage('Please enter a valid deposit payment amount');
+      return;
+    }
+    const depRecordId = resident.securityDepositRecord?._id;
+    if (!depRecordId) {
+      setToastMessage('Security deposit record not found for this resident');
+      return;
+    }
+    setRecordingDeposit(true);
+    try {
+      await depositService.recordPayment({
+        depositId: depRecordId,
+        amount: amt,
+        paymentMethod: depositMethod,
+        transactionReference: depositRef,
+        notes: `Deposit payment received via ${depositMethod}`,
+      });
+      setToastMessage(`Successfully recorded deposit payment of ₹${amt.toLocaleString('en-IN')}!`);
+      setDepositModalOpen(false);
+      setDepositAmount('');
+      setDepositRef('');
+      await loadResident();
+    } catch (err: any) {
+      setToastMessage(err.response?.data?.error || 'Failed to record deposit payment');
+    } finally {
+      setRecordingDeposit(false);
     }
   };
 
@@ -232,6 +303,42 @@ const ResidentDetail: React.FC = () => {
                 </div>
               </IonCardContent>
             </IonCard>
+            {/* Account Credentials & Password Management Card */}
+            <IonCard style={{ margin: '16px 0 0 0', borderRadius: '20px', border: '1px solid #e0e7ff', background: '#faf5ff' }}>
+              <IonCardContent style={{ padding: '20px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <IonIcon icon={keyOutline} style={{ color: '#7c3aed', fontSize: '20px' }} />
+                    <h3 style={{ fontSize: '15px', fontWeight: 800, color: '#581c87', margin: 0 }}>
+                      Portal Login Credentials
+                    </h3>
+                  </div>
+                  <IonButton
+                    size="small"
+                    fill="outline"
+                    color="secondary"
+                    onClick={() => {
+                      setNewPassword('Resident@123');
+                      setResetModalOpen(true);
+                    }}
+                  >
+                    Reset Password
+                  </IonButton>
+                </div>
+                <div style={{ background: '#ffffff', borderRadius: '12px', padding: '14px', border: '1px solid #f3e8ff' }}>
+                  <div style={{ marginBottom: '8px' }}>
+                    <span style={{ fontSize: '11px', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 600 }}>Login Email</span>
+                    <div style={{ fontSize: '14px', fontWeight: 700, color: '#2563eb' }}>{resident.email}</div>
+                  </div>
+                  <div>
+                    <span style={{ fontSize: '11px', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 600 }}>Account Status</span>
+                    <div style={{ fontSize: '13px', fontWeight: 700, color: resident.status !== 'Vacated' ? '#16a34a' : '#ef4444' }}>
+                      {resident.status !== 'Vacated' ? 'Active Resident Login' : 'Inactive (Vacated)'}
+                    </div>
+                  </div>
+                </div>
+              </IonCardContent>
+            </IonCard>
           </div>
         )}
 
@@ -240,9 +347,22 @@ const ResidentDetail: React.FC = () => {
           <div>
             <IonCard style={{ margin: '0 0 16px 0', borderRadius: '20px' }}>
               <IonCardContent style={{ padding: '20px' }}>
-                <h3 style={{ fontSize: '15px', fontWeight: 800, color: '#0f172a', marginBottom: '12px' }}>
-                  Security Deposit Status
-                </h3>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                  <h3 style={{ fontSize: '15px', fontWeight: 800, color: '#0f172a', margin: 0 }}>
+                    Security Deposit Status
+                  </h3>
+                  <IonButton
+                    size="small"
+                    color="primary"
+                    onClick={() => {
+                      setDepositAmount(resident.securityDepositRecord?.depositOutstanding || '');
+                      setDepositModalOpen(true);
+                    }}
+                  >
+                    <IonIcon icon={cashOutline} slot="start" />
+                    Record Deposit Payment
+                  </IonButton>
+                </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
                   <div>
                     <div style={{ fontSize: '11px', color: '#64748b' }}>REQUIRED</div>
@@ -392,6 +512,155 @@ const ResidentDetail: React.FC = () => {
             )}
           </div>
         )}
+
+        {/* Admin Reset Password Modal */}
+        <IonModal isOpen={resetModalOpen} onDidDismiss={() => setResetModalOpen(false)}>
+          <IonHeader>
+            <IonToolbar color="secondary">
+              <IonTitle>Reset Resident Password</IonTitle>
+              <IonButtons slot="end">
+                <IonButton onClick={() => setResetModalOpen(false)} style={{ color: '#ffffff', fontWeight: 700 }}>
+                  Cancel
+                </IonButton>
+              </IonButtons>
+            </IonToolbar>
+          </IonHeader>
+          <IonContent className="ion-padding" style={{ '--padding-bottom': 'calc(env(safe-area-inset-bottom, 24px) + 50px)' }}>
+            <form onSubmit={handleResetPassword} style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 24px) + 50px)' }}>
+              <div style={{ padding: '14px', background: '#f5f3ff', borderRadius: '12px', marginBottom: '16px', border: '1px solid #ddd6fe' }}>
+                <div style={{ fontSize: '13px', fontWeight: 700, color: '#5b21b6', marginBottom: '4px' }}>
+                  Resetting credentials for {resident.fullName}
+                </div>
+                <div style={{ fontSize: '12px', color: '#6d28d9' }}>
+                  Login Email: <strong>{resident.email}</strong>
+                </div>
+              </div>
+
+              <IonItem lines="inset" style={{ '--padding-start': '0', position: 'relative' }}>
+                <IonLabel position="stacked" style={{ fontWeight: 700, color: '#581c87' }}>New Password *</IonLabel>
+                <div style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+                  <IonInput
+                    type={showNewPassword ? 'text' : 'password'}
+                    required
+                    value={newPassword}
+                    placeholder="Enter new password"
+                    onIonChange={(e) => setNewPassword(e.detail.value!)}
+                  />
+                  <IonButton
+                    fill="clear"
+                    onClick={() => setShowNewPassword(!showNewPassword)}
+                    style={{ margin: 0 }}
+                  >
+                    <IonIcon icon={showNewPassword ? eyeOffOutline : eyeOutline} slot="icon-only" color="secondary" />
+                  </IonButton>
+                </div>
+              </IonItem>
+
+              <div style={{ display: 'flex', gap: '8px', marginTop: '10px', marginBottom: '24px' }}>
+                <IonButton
+                  size="small"
+                  fill="outline"
+                  color="secondary"
+                  onClick={() => setNewPassword('Resident@123')}
+                >
+                  Set to Resident@123
+                </IonButton>
+                <IonButton
+                  size="small"
+                  fill="outline"
+                  color="primary"
+                  onClick={() => setNewPassword('Pass@' + Math.floor(1000 + Math.random() * 9000))}
+                >
+                  Generate Random
+                </IonButton>
+              </div>
+
+              <IonButton
+                expand="block"
+                type="submit"
+                color="secondary"
+                disabled={resetting || !newPassword.trim()}
+                style={{ height: '48px', fontWeight: 700 }}
+              >
+                {resetting ? 'Updating...' : 'Save New Password'}
+              </IonButton>
+            </form>
+          </IonContent>
+        </IonModal>
+
+        {/* Record Deposit Payment Modal */}
+        <IonModal isOpen={depositModalOpen} onDidDismiss={() => setDepositModalOpen(false)}>
+          <IonHeader>
+            <IonToolbar color="primary">
+              <IonTitle>Record Deposit Payment</IonTitle>
+              <IonButtons slot="end">
+                <IonButton onClick={() => setDepositModalOpen(false)} style={{ color: '#ffffff', fontWeight: 800 }}>
+                  <IonIcon icon={closeOutline} slot="start" style={{ fontSize: '20px' }} />
+                  Close
+                </IonButton>
+              </IonButtons>
+            </IonToolbar>
+          </IonHeader>
+          <IonContent className="ion-padding">
+            <form onSubmit={handleRecordDeposit}>
+              <div style={{ background: '#f0fdf4', padding: '14px', borderRadius: '12px', marginBottom: '16px', border: '1px solid #bbf7d0' }}>
+                <div style={{ fontSize: '13px', fontWeight: 800, color: '#166534', marginBottom: '4px' }}>
+                  Resident: {resident.fullName}
+                </div>
+                <div style={{ fontSize: '12px', color: '#15803d' }}>
+                  Required: ₹{resident.securityDepositRecord?.depositRequired?.toLocaleString('en-IN') ?? resident.securityDeposit} • Currently Paid: ₹{resident.securityDepositRecord?.depositReceived?.toLocaleString('en-IN') ?? resident.securityDepositPaid} • Outstanding: ₹{resident.securityDepositRecord?.depositOutstanding?.toLocaleString('en-IN') ?? 0}
+                </div>
+              </div>
+
+              <IonItem lines="inset" style={{ '--padding-start': '0' }}>
+                <IonLabel position="stacked" style={{ fontWeight: 700 }}>Payment Amount (INR) *</IonLabel>
+                <IonInput
+                  type="number"
+                  required
+                  value={depositAmount}
+                  placeholder="Enter amount paid"
+                  onIonChange={(e) => setDepositAmount(e.detail.value!)}
+                />
+              </IonItem>
+
+              <IonItem lines="inset" style={{ '--padding-start': '0', marginTop: '12px' }}>
+                <IonLabel position="stacked" style={{ fontWeight: 700 }}>Payment Method *</IonLabel>
+                <IonInput
+                  value={depositMethod}
+                  placeholder="Cash / UPI / Bank Transfer"
+                  onIonChange={(e) => setDepositMethod(e.detail.value as any)}
+                />
+              </IonItem>
+
+              <IonItem lines="inset" style={{ '--padding-start': '0', marginTop: '12px' }}>
+                <IonLabel position="stacked" style={{ fontWeight: 700 }}>Transaction / Reference ID</IonLabel>
+                <IonInput
+                  value={depositRef}
+                  placeholder="e.g. UPI Ref / Cash receipt number"
+                  onIonChange={(e) => setDepositRef(e.detail.value!)}
+                />
+              </IonItem>
+
+              <IonButton
+                expand="block"
+                type="submit"
+                color="primary"
+                disabled={recordingDeposit || !depositAmount}
+                style={{ marginTop: '24px', height: '48px', fontWeight: 700 }}
+              >
+                {recordingDeposit ? 'Recording Payment...' : 'Confirm Deposit Payment'}
+              </IonButton>
+            </form>
+          </IonContent>
+        </IonModal>
+
+        <IonToast
+          isOpen={!!toastMessage}
+          message={toastMessage || ''}
+          duration={3500}
+          onDidDismiss={() => setToastMessage(null)}
+          color="dark"
+        />
       </IonContent>
     </IonPage>
   );
