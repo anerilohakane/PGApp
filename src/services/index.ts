@@ -215,6 +215,14 @@ export const notificationService = {
     const res = await apiClient.post('/notifications', { action: 'register-fcm', fcmToken });
     return res.data;
   },
+  sendNotification: async (data: { title: string; message: string; type?: string; targetResidentId?: string }) => {
+    const res = await apiClient.post('/notifications', { action: 'send', ...data });
+    return res.data;
+  },
+  triggerCronReminders: async () => {
+    const res = await apiClient.post('/cron/reminders');
+    return res.data;
+  },
 };
 
 export const reportService = {
@@ -230,9 +238,40 @@ export const reportService = {
     const res = await apiClient.get('/reports', { params: { type: 'collection', ...params } });
     return res.data.report;
   },
+  downloadRentExcel: async (month?: string) => {
+    const res = await apiClient.get('/reports', {
+      params: { type: 'rent', format: 'excel', month },
+      responseType: 'blob',
+    });
+    const blob = new Blob([res.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Rent_Report_${month || 'All'}.xlsx`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+  },
+  downloadCollectionExcel: async () => {
+    const res = await apiClient.get('/reports', {
+      params: { type: 'collection', format: 'excel' },
+      responseType: 'blob',
+    });
+    const blob = new Blob([res.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'Payment_Receipts_Ledger.xlsx';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+  },
   getExcelDownloadUrl: (type: 'rent' | 'collection', month?: string) => {
     const base = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
-    return `${base}/reports?type=${type}&format=excel${month ? `&month=${month}` : ''}`;
+    const token = localStorage.getItem('token') || '';
+    return `${base}/reports?type=${type}&format=excel${month ? `&month=${month}` : ''}${token ? `&token=${token}` : ''}`;
   },
 };
 
