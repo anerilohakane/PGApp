@@ -690,11 +690,18 @@ const AdminResidents: React.FC = () => {
                   >
                     {rooms.map((r) => {
                       const isSingle = r.rentalType === 'Full Room (Single Tenant)';
-                      const isFull = isSingle ? (r.currentOccupants >= 1 || r.status === 'Full') : (r.currentOccupants >= r.maxCapacity || r.status === 'Full');
-                      const planLabel = isSingle ? 'Single Room' : `Sharing (${r.currentOccupants || 0}/${r.maxCapacity} tenants)`;
+                      const max = isSingle ? 1 : (r.maxCapacity || 1);
+                      const current = r.currentOccupants || 0;
+                      const remaining = Math.max(0, max - current);
+                      const isFull = current >= max || r.status === 'Full';
+
+                      const planLabel = isSingle
+                        ? (isFull ? 'Single Room (Occupied)' : 'Single Room (Available)')
+                        : `Sharing: ${current} assigned, ${remaining} available (Total ${max})`;
+
                       return (
                         <IonSelectOption key={r._id} value={r._id} disabled={isFull}>
-                          Room {r.roomNumber} - {planLabel} {isFull ? '(FULL / OCCUPIED)' : `(₹${r.defaultRent?.toLocaleString('en-IN')}/mo)`}
+                          Room {r.roomNumber} - {planLabel} {isFull ? '(FULL)' : `(₹${r.defaultRent?.toLocaleString('en-IN')}/mo)`}
                         </IonSelectOption>
                       );
                     })}
@@ -707,20 +714,36 @@ const AdminResidents: React.FC = () => {
               )}
 
               {/* Room Plan Summary Banner */}
-              {formData.roomId && (
-                <div style={{ margin: '12px 0', padding: '12px 14px', background: '#f8fafc', borderRadius: '10px', border: '1px solid #e2e8f0', fontSize: '13px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                    <span style={{ color: '#64748b' }}>Room Plan Type:</span>
-                    <strong style={{ color: '#0f172a' }}>
-                      {formData.occupancyType === 'Single' ? 'Single Room (Entire)' : `Sharing Room (${formData.sharingTenantCount} Tenants)`}
-                    </strong>
+              {formData.roomId && (() => {
+                const currentRoom = rooms.find(r => r._id === formData.roomId);
+                const isSingle = formData.occupancyType === 'Single';
+                const max = isSingle ? 1 : (currentRoom?.maxCapacity || formData.sharingTenantCount || 1);
+                const assigned = currentRoom?.currentOccupants || 0;
+                const remaining = Math.max(0, max - assigned);
+
+                return (
+                  <div style={{ margin: '12px 0', padding: '12px 14px', background: '#f8fafc', borderRadius: '10px', border: '1px solid #e2e8f0', fontSize: '13px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                      <span style={{ color: '#64748b' }}>Room Plan Type:</span>
+                      <strong style={{ color: '#0f172a' }}>
+                        {isSingle ? 'Single Room (Entire)' : `Sharing Room (${max} Sharing)`}
+                      </strong>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                      <span style={{ color: '#64748b' }}>Occupancy Status:</span>
+                      <strong style={{ color: remaining > 0 ? '#16a34a' : '#dc2626' }}>
+                        {isSingle
+                          ? (assigned > 0 ? 'Occupied (1/1)' : 'Vacant (0/1)')
+                          : `${assigned} Assigned, ${remaining} Remaining (${assigned}/${max})`}
+                      </strong>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <span style={{ color: '#64748b' }}>Configured Room Rent:</span>
+                      <strong style={{ color: '#16a34a' }}>₹{formData.monthlyRent?.toLocaleString('en-IN')}/mo</strong>
+                    </div>
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span style={{ color: '#64748b' }}>Configured Room Rent:</span>
-                    <strong style={{ color: '#16a34a' }}>₹{formData.monthlyRent?.toLocaleString('en-IN')}/mo</strong>
-                  </div>
-                </div>
-              )}
+                );
+              })()}
 
               {/* Admin Customizable Charges */}
               <div style={{ background: '#f0fdf4', padding: '12px', borderRadius: '12px', marginTop: '16px', border: '1px solid #bbf7d0' }}>
