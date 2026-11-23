@@ -149,6 +149,14 @@ const AdminResidents: React.FC = () => {
       return;
     }
     const chosenRoom = rooms.find((r) => r._id === formData.roomId);
+    if (chosenRoom) {
+      const isSingle = chosenRoom.rentalType === 'Full Room (Single Tenant)';
+      const isFull = isSingle ? (chosenRoom.currentOccupants >= 1 || chosenRoom.status === 'Full') : (chosenRoom.currentOccupants >= chosenRoom.maxCapacity || chosenRoom.status === 'Full');
+      if (isFull) {
+        setToastMessage(`Room ${chosenRoom.roomNumber} is already occupied and cannot accept new tenants.`);
+        return;
+      }
+    }
     const roomLabel = chosenRoom ? chosenRoom.roomNumber : '';
     const assignedPassword = formData.password.trim() || 'Resident@123';
     const regName = formData.fullName;
@@ -158,6 +166,9 @@ const AdminResidents: React.FC = () => {
     try {
       const res: any = await residentService.register({
         ...formData,
+        advancePayment: Number(formData.advancePayment || 0),
+        monthlyRent: Number(formData.monthlyRent || 0),
+        securityDeposit: Number(formData.securityDeposit || 0),
         password: assignedPassword,
         occupancyType: formData.occupancyType === 'Single' ? 'Full Room' : 'Shared',
       });
@@ -679,10 +690,11 @@ const AdminResidents: React.FC = () => {
                   >
                     {rooms.map((r) => {
                       const isSingle = r.rentalType === 'Full Room (Single Tenant)';
-                      const planLabel = isSingle ? 'Single' : `Sharing (${r.maxCapacity} tenants)`;
+                      const isFull = isSingle ? (r.currentOccupants >= 1 || r.status === 'Full') : (r.currentOccupants >= r.maxCapacity || r.status === 'Full');
+                      const planLabel = isSingle ? 'Single Room' : `Sharing (${r.currentOccupants || 0}/${r.maxCapacity} tenants)`;
                       return (
-                        <IonSelectOption key={r._id} value={r._id}>
-                          Room {r.roomNumber} - {planLabel} (₹{r.defaultRent?.toLocaleString('en-IN')}/mo)
+                        <IonSelectOption key={r._id} value={r._id} disabled={isFull}>
+                          Room {r.roomNumber} - {planLabel} {isFull ? '(FULL / OCCUPIED)' : `(₹${r.defaultRent?.toLocaleString('en-IN')}/mo)`}
                         </IonSelectOption>
                       );
                     })}
