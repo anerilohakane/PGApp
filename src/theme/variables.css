@@ -218,3 +218,70 @@ ion-modal ion-toolbar ion-button ion-icon {
   color: #ffffff !important;
   font-size: 24px;
 }
+
+/* Global Aesthetics & Glassmorphism Refinements */
+ion-content {
+  --background: #f8fafc;
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Card Micro-interactions and elevation */
+.interactive-card {
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.interactive-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 16px 32px -4px rgba(79, 70, 229, 0.12), 0 8px 16px -4px rgba(15, 23, 42, 0.04);
+}
+
+/* Modern segmented control styling */
+ion-segment {
+  background: #f1f5f9;
+  border-radius: 14px;
+  padding: 4px;
+}
+ion-segment-button {
+  --color: #64748b;
+  --color-checked: #4f46e5;
+  --indicator-color: #ffffff;
+  --indicator-box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  font-weight: 700;
+  font-size: 13px;
+  border-radius: 10px;
+  margin: 0 2px;
+  min-height: 38px;
+}
+
+/* Input item focus highlight */
+ion-item.item-has-focus {
+  --border-color: #4f46e5;
+  box-shadow: 0 0 0 1px #4f46e5;
+}
+
+/* Modern Pill Badges */
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
