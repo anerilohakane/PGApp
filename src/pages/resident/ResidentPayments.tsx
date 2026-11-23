@@ -139,7 +139,14 @@ const ResidentPayments: React.FC = () => {
                         fill="outline"
                         color="primary"
                         style={{ marginTop: '6px' }}
-                        onClick={() => window.open(paymentService.getReceiptPdfUrl(rec._id), '_blank')}
+                        onClick={async () => {
+                          try {
+                            await paymentService.downloadReceiptPdf(rec._id, rec.receiptNumber);
+                          } catch (e) {
+                            // Fallback to opening authenticated URL directly in browser tab
+                            window.open(paymentService.getReceiptPdfUrl(rec._id), '_blank');
+                          }
+                        }}
                       >
                         <IonIcon icon={downloadOutline} slot="start" />
                         PDF

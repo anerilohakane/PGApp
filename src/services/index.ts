@@ -167,8 +167,24 @@ export const paymentService = {
     const res = await apiClient.get('/receipts', { params });
     return res.data.receipts;
   },
+  downloadReceiptPdf: async (id: string, receiptNumber?: string) => {
+    const res = await apiClient.get(`/receipts/${id}/pdf`, {
+      responseType: 'blob',
+    });
+    const blob = new Blob([res.data], { type: 'application/pdf' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Receipt_${receiptNumber || id}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+  },
   getReceiptPdfUrl: (id: string) => {
-    return `${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/receipts/${id}/pdf`;
+    const token = localStorage.getItem('pg_auth_token') || localStorage.getItem('token') || '';
+    const base = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+    return `${base}/receipts/${id}/pdf${token ? `?token=${encodeURIComponent(token)}` : ''}`;
   },
 };
 
@@ -270,8 +286,8 @@ export const reportService = {
   },
   getExcelDownloadUrl: (type: 'rent' | 'collection', month?: string) => {
     const base = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
-    const token = localStorage.getItem('token') || '';
-    return `${base}/reports?type=${type}&format=excel${month ? `&month=${month}` : ''}${token ? `&token=${token}` : ''}`;
+    const token = localStorage.getItem('pg_auth_token') || localStorage.getItem('token') || '';
+    return `${base}/reports?type=${type}&format=excel${month ? `&month=${month}` : ''}${token ? `&token=${encodeURIComponent(token)}` : ''}`;
   },
 };
 
