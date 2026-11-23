@@ -107,6 +107,10 @@ const ResidentDetail: React.FC = () => {
       setToastMessage('Please enter a valid deposit payment amount');
       return;
     }
+    if (depositMethod !== 'Cash' && (!depositRef || depositRef.trim().length < 6)) {
+      setToastMessage('Transaction UTR / Reference ID (min 6 characters) is required for online deposit payments');
+      return;
+    }
     const depRecordId = resident.securityDepositRecord?._id;
     if (!depRecordId) {
       setToastMessage('Security deposit record not found for this resident');
@@ -428,19 +432,19 @@ const ResidentDetail: React.FC = () => {
                             {doc.documentNumberMasked ? `ID: ${doc.documentNumberMasked} • ` : ''}
                             Uploaded: {new Date(doc.createdAt).toLocaleDateString()}
                           </div>
-                          {doc.cloudinaryUrl && (
+                          {/* {doc.cloudinaryUrl && (
                             <div style={{ fontSize: '11px', color: '#059669', fontWeight: 600, marginTop: '2px' }}>
                               ☁️ Verified on Cloudinary Storage
                             </div>
-                          )}
+                          )} */}
                         </div>
                         <span
                           className={
                             doc.verificationStatus === 'Verified'
                               ? 'badge-tag badge-paid'
                               : doc.verificationStatus === 'Pending'
-                              ? 'badge-tag badge-pending'
-                              : 'badge-tag badge-overdue'
+                                ? 'badge-tag badge-pending'
+                                : 'badge-tag badge-overdue'
                           }
                         >
                           {doc.verificationStatus}
@@ -458,7 +462,7 @@ const ResidentDetail: React.FC = () => {
                             style={{ '--border-radius': '10px' }}
                           >
                             <IonIcon icon={openOutline} slot="start" />
-                            View Cloudinary Document
+                            View Document
                           </IonButton>
                         </div>
                       )}

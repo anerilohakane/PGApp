@@ -157,6 +157,46 @@ const AdminResidents: React.FC = () => {
         return;
       }
     }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email.trim())) {
+      setToastMessage('Please enter a valid email address.');
+      return;
+    }
+
+    const cleanPhone = formData.phone.replace(/\D/g, '');
+    if (cleanPhone.length !== 10) {
+      setToastMessage('Please enter a valid 10-digit mobile number.');
+      return;
+    }
+
+    const cleanAadhaar = (formData.aadhaarNumber || '').replace(/\D/g, '');
+    if (cleanAadhaar.length !== 12) {
+      setToastMessage('Aadhaar number must be exactly 12 digits.');
+      return;
+    }
+
+    const cleanPan = (formData.panNumber || '').trim().toUpperCase();
+    const panRegex = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/;
+    if (!panRegex.test(cleanPan)) {
+      setToastMessage('Invalid PAN format. Must be 5 uppercase letters, 4 digits, 1 uppercase letter (e.g. ABCDE1234F).');
+      return;
+    }
+
+    if (!formData.aadhaarFrontFile?.base64) {
+      setToastMessage('Please upload Aadhaar Card (Front) image proof.');
+      return;
+    }
+
+    if (!formData.aadhaarBackFile?.base64) {
+      setToastMessage('Please upload Aadhaar Card (Back) image proof.');
+      return;
+    }
+
+    if (!formData.panCardFile?.base64) {
+      setToastMessage('Please upload PAN Card document proof.');
+      return;
+    }
+
     const roomLabel = chosenRoom ? chosenRoom.roomNumber : '';
     const assignedPassword = formData.password.trim() || 'Resident@123';
     const regName = formData.fullName;
@@ -533,13 +573,13 @@ const AdminResidents: React.FC = () => {
                 {/* Aadhaar Number */}
                 <IonItem lines="inset" style={{ '--padding-start': '0', '--background': 'transparent' }}>
                   <IonLabel position="stacked" style={{ fontWeight: '700', color: '#6b21a8' }}>
-                    Aadhaar Number
+                    Aadhaar Number *
                   </IonLabel>
                   <IonInput
                     placeholder="12-digit Aadhaar number"
-                    maxlength={14}
+                    maxlength={12}
                     value={formData.aadhaarNumber}
-                    onIonChange={(e) => setFormData({ ...formData, aadhaarNumber: e.detail.value! })}
+                    onIonChange={(e) => setFormData({ ...formData, aadhaarNumber: e.detail.value!.replace(/\D/g, '') })}
                   />
                 </IonItem>
 
@@ -555,6 +595,7 @@ const AdminResidents: React.FC = () => {
                   </div>
                   <input
                     type="file"
+                    required
                     accept="image/*,application/pdf"
                     onChange={(e) => {
                       const file = e.target.files?.[0];
@@ -581,7 +622,7 @@ const AdminResidents: React.FC = () => {
                 {/* Aadhaar Back */}
                 <div style={{ marginTop: '10px', padding: '10px', background: '#ffffff', borderRadius: '8px', border: '1px dashed #d8b4fe' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                    <span style={{ fontSize: '12px', fontWeight: '700', color: '#581c87' }}>Aadhaar Card (Back)</span>
+                    <span style={{ fontSize: '12px', fontWeight: '700', color: '#581c87' }}>Aadhaar Card (Back) *</span>
                     {formData.aadhaarBackFile && (
                       <span style={{ fontSize: '11px', color: '#16a34a', display: 'flex', alignItems: 'center', gap: '2px' }}>
                         <IonIcon icon={checkmarkCircleOutline} /> Selected ({formData.aadhaarBackFile.name})
@@ -590,6 +631,7 @@ const AdminResidents: React.FC = () => {
                   </div>
                   <input
                     type="file"
+                    required
                     accept="image/*,application/pdf"
                     onChange={(e) => {
                       const file = e.target.files?.[0];
@@ -616,7 +658,7 @@ const AdminResidents: React.FC = () => {
                 {/* PAN Card Number */}
                 <IonItem lines="inset" style={{ '--padding-start': '0', '--background': 'transparent', marginTop: '10px' }}>
                   <IonLabel position="stacked" style={{ fontWeight: '700', color: '#6b21a8' }}>
-                    PAN Card Number
+                    PAN Card Number *
                   </IonLabel>
                   <IonInput
                     placeholder="10-digit PAN (e.g. ABCDE1234F)"
@@ -629,7 +671,7 @@ const AdminResidents: React.FC = () => {
                 {/* PAN Card File */}
                 <div style={{ marginTop: '10px', padding: '10px', background: '#ffffff', borderRadius: '8px', border: '1px dashed #d8b4fe' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                    <span style={{ fontSize: '12px', fontWeight: '700', color: '#581c87' }}>PAN Card Document</span>
+                    <span style={{ fontSize: '12px', fontWeight: '700', color: '#581c87' }}>PAN Card Document *</span>
                     {formData.panCardFile && (
                       <span style={{ fontSize: '11px', color: '#16a34a', display: 'flex', alignItems: 'center', gap: '2px' }}>
                         <IonIcon icon={checkmarkCircleOutline} /> Selected ({formData.panCardFile.name})
@@ -638,6 +680,7 @@ const AdminResidents: React.FC = () => {
                   </div>
                   <input
                     type="file"
+                    required
                     accept="image/*,application/pdf"
                     onChange={(e) => {
                       const file = e.target.files?.[0];

@@ -95,12 +95,13 @@ const ResidentPay: React.FC = () => {
       setToastMessage('Payment amount must be greater than zero.');
       return;
     }
-    if (paymentMethod === 'UPI' && !transactionId.trim()) {
-      setToastMessage('Transaction ID / UTR is mandatory for UPI payments.');
+    const cleanTxn = transactionId.trim();
+    if (!cleanTxn || cleanTxn.length < 6) {
+      setToastMessage('Transaction ID / UTR must be at least 6 characters.');
       return;
     }
-    if (paymentMethod === 'UPI' && !screenshotFile) {
-      setToastMessage('Please upload payment screenshot as proof.');
+    if (!screenshotFile) {
+      setToastMessage('Payment screenshot proof is mandatory. Please attach your payment screenshot.');
       return;
     }
 
