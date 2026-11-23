@@ -262,6 +262,52 @@ const ResidentProfilePage: React.FC = () => {
           </IonCardContent>
         </IonCard>
 
+        {/* Uploaded Documents & ID Proofs */}
+        <IonCard style={{ margin: '0 0 16px 0', border: '1px solid #e2e8f0' }}>
+          <IonCardContent style={{ padding: '16px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+              <h3 style={{ fontSize: '15px', fontWeight: '800', color: '#0f172a', margin: 0 }}>
+                My Identity Proofs & Documents
+              </h3>
+              <span style={{ fontSize: '12px', background: '#ecfdf5', color: '#059669', padding: '2px 8px', borderRadius: '12px', fontWeight: 700 }}>
+                {profile?.documents?.length || 0} Attached
+              </span>
+            </div>
+
+            {profile?.documents && profile.documents.length > 0 ? (
+              <IonList lines="full">
+                {profile.documents.map((doc: any) => (
+                  <IonItem key={doc._id} style={{ '--padding-start': '0' }}>
+                    <IonIcon icon={shieldCheckmarkOutline} slot="start" color="primary" />
+                    <IonLabel>
+                      <h4 style={{ fontWeight: 700, fontSize: '14px' }}>{doc.category || doc.documentName}</h4>
+                      <p style={{ fontSize: '12px', color: '#64748b' }}>
+                        {doc.documentNumberMasked ? `ID: ${doc.documentNumberMasked} • ` : ''}
+                        {doc.verificationStatus === 'Verified' ? '✓ Verified Proof' : 'Pending Verification'}
+                      </p>
+                    </IonLabel>
+                    {doc.cloudinaryUrl && (
+                      <IonButton
+                        fill="outline"
+                        size="small"
+                        slot="end"
+                        href={doc.cloudinaryUrl}
+                        target="_blank"
+                      >
+                        View
+                      </IonButton>
+                    )}
+                  </IonItem>
+                ))}
+              </IonList>
+            ) : (
+              <div style={{ padding: '12px 0', color: '#94a3b8', fontSize: '13px', textAlign: 'center' }}>
+                No identity documents attached yet.
+              </div>
+            )}
+          </IonCardContent>
+        </IonCard>
+
         {/* Prominent Logout Button */}
         <div style={{ margin: '24px 0 32px 0' }}>
           <IonButton

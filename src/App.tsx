@@ -87,6 +87,10 @@ const AdminTabs: React.FC = () => (
         <IonIcon icon={businessOutline} />
         <IonLabel>Rooms</IonLabel>
       </IonTabButton>
+      <IonTabButton tab="complaints" href="/admin/complaints">
+        <IonIcon icon={chatbubbleEllipsesOutline} />
+        <IonLabel>Issues</IonLabel>
+      </IonTabButton>
       <IonTabButton tab="reports" href="/admin/reports">
         <IonIcon icon={barChartOutline} />
         <IonLabel>Reports</IonLabel>
@@ -122,10 +126,6 @@ const ResidentTabs: React.FC = () => (
       <IonTabButton tab="payments" href="/resident/payments">
         <IonIcon icon={documentTextOutline} />
         <IonLabel>History</IonLabel>
-      </IonTabButton>
-      <IonTabButton tab="documents" href="/resident/documents">
-        <IonIcon icon={documentTextOutline} />
-        <IonLabel>Docs</IonLabel>
       </IonTabButton>
       <IonTabButton tab="complaints" href="/resident/complaints">
         <IonIcon icon={chatbubbleEllipsesOutline} />

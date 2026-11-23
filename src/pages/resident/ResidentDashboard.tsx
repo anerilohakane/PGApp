@@ -284,28 +284,6 @@ const ResidentDashboard: React.FC = () => {
               </div>
             </IonCol>
 
-            {/* Identity Documents */}
-            <IonCol size="6">
-              <div
-                onClick={() => history.push('/resident/documents')}
-                style={{
-                  background: '#ffffff',
-                  borderRadius: '20px',
-                  padding: '18px',
-                  border: '1px solid #e2e8f0',
-                  boxShadow: '0 4px 14px rgba(15, 23, 42, 0.03)',
-                  cursor: 'pointer',
-                  height: '100%',
-                }}
-              >
-                <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: '#fdf4ff', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '12px' }}>
-                  <IonIcon icon={shieldCheckmarkOutline} style={{ color: '#a855f7', fontSize: '20px' }} />
-                </div>
-                <div style={{ fontSize: '15px', fontWeight: 800, color: '#0f172a' }}>ID Proofs & Docs</div>
-                <div style={{ fontSize: '12px', color: '#64748b', marginTop: '2px' }}>Aadhaar & Agreement</div>
-              </div>
-            </IonCol>
-
             {/* Profile & Accommodation */}
             <IonCol size="6">
               <div
@@ -323,8 +301,8 @@ const ResidentDashboard: React.FC = () => {
                 <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: '#eff6ff', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '12px' }}>
                   <IonIcon icon={homeOutline} style={{ color: '#3b82f6', fontSize: '20px' }} />
                 </div>
-                <div style={{ fontSize: '15px', fontWeight: 800, color: '#0f172a' }}>My Profile</div>
-                <div style={{ fontSize: '12px', color: '#64748b', marginTop: '2px' }}>Bed, rules, contact</div>
+                <div style={{ fontSize: '15px', fontWeight: 800, color: '#0f172a' }}>My Profile & ID Proofs</div>
+                <div style={{ fontSize: '12px', color: '#64748b', marginTop: '2px' }}>Aadhaar, PAN & Rent</div>
               </div>
             </IonCol>
           </IonRow>

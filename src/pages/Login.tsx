@@ -28,14 +28,17 @@ const Login: React.FC = () => {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password) {
+    const cleanEmail = email.trim().toLowerCase();
+    const cleanPassword = password.trim();
+
+    if (!cleanEmail || !cleanPassword) {
       setToastMessage('Please enter email and password');
       return;
     }
 
     setLoading(true);
     try {
-      const res = await authService.login(email, password);
+      const res = await authService.login(cleanEmail, cleanPassword);
       login(res.token, res.user);
       if (res.user.role === 'admin') {
         history.replace('/admin/dashboard');
