@@ -85,10 +85,10 @@ const Login: React.FC = () => {
               <IonIcon icon={businessOutline} style={{ fontSize: '40px', color: '#fff', transform: 'rotate(2deg)' }} />
             </div>
             <h1 style={{ fontSize: '26px', fontWeight: '800', color: '#0f172a', margin: '18px 0 6px 0', letterSpacing: '-0.03em' }}>
-              PG Manager Pro
+              Mahalakshami PG
             </h1>
             <p style={{ color: '#64748b', fontSize: '14px', margin: 0, fontWeight: 500 }}>
-              Smart property management & resident ecosystem
+              Smart Living & Accommodation Portal
             </p>
           </div>
 
