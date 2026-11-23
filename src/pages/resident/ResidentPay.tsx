@@ -167,11 +167,16 @@ const ResidentPay: React.FC = () => {
                 <IonSelect
                   value={selectedRecordId}
                   onIonChange={(e) => handleRecordChange(e.detail.value)}
-                  placeholder="Select month"
+                  placeholder={rentRecords.length === 0 ? "Loading pending rent..." : "Select month"}
                 >
+                  {rentRecords.length === 0 && (
+                    <IonSelectOption value="" disabled>
+                      No pending rent record found
+                    </IonSelectOption>
+                  )}
                   {rentRecords.map((r) => (
                     <IonSelectOption key={r._id} value={r._id}>
-                      {r.rentMonth} (Due: ₹{r.outstandingAmount})
+                      {r.rentMonth} (Due: ₹{r.outstandingAmount?.toLocaleString('en-IN')}) {r.status === 'Paid' ? '• [PAID]' : ''}
                     </IonSelectOption>
                   ))}
                 </IonSelect>
