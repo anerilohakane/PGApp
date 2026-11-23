@@ -52,16 +52,6 @@ const Login: React.FC = () => {
     }
   };
 
-  const quickFill = (role: 'admin' | 'resident') => {
-    if (role === 'admin') {
-      setEmail('admin@pgapp.com');
-      setPassword('Admin@123');
-    } else {
-      setEmail('lohakaneaneri6@gmail.com');
-      setPassword('Resident@123');
-    }
-  };
-
   return (
     <IonPage>
       <IonContent fullscreen className="ion-padding" style={{ '--background': 'radial-gradient(circle at top left, #e0e7ff 0%, #f8fafc 40%, #f1f5f9 100%)' }}>
@@ -108,7 +98,7 @@ const Login: React.FC = () => {
                 <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#94a3b8' }}>Access your administrative or resident dashboard</p>
               </div>
 
-              <form onSubmit={handleLogin}>
+              <form onSubmit={handleLogin} autoComplete="off">
                 <IonItem
                   lines="none"
                   style={{
@@ -126,6 +116,11 @@ const Login: React.FC = () => {
                     placeholder="name@example.com"
                     onIonChange={(e) => setEmail(e.detail.value!)}
                     required
+                    autocomplete="off"
+                    autocorrect="off"
+                    spellcheck={false}
+                    name="login_email_no_save"
+                    id="login_email_no_save"
                     style={{ fontSize: '14px', fontWeight: '500' }}
                   />
                 </IonItem>
@@ -148,6 +143,9 @@ const Login: React.FC = () => {
                     placeholder="Enter password"
                     onIonChange={(e) => setPassword(e.detail.value!)}
                     required
+                    autocomplete="new-password"
+                    name="login_password_no_save"
+                    id="login_password_no_save"
                     style={{ fontSize: '14px', fontWeight: '500' }}
                   />
                   <IonButton
@@ -173,33 +171,6 @@ const Login: React.FC = () => {
                   Sign In to Account
                 </IonButton>
               </form>
-
-              {/* 1-Click Fast Fill */}
-              <div style={{ marginTop: '24px', paddingTop: '18px', borderTop: '1px dashed #e2e8f0', textAlign: 'center' }}>
-                <div style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '10px' }}>
-                  Quick Fill Demo Credentials
-                </div>
-                <div style={{ display: 'flex', gap: '8px' }}>
-                  <IonButton
-                    size="small"
-                    fill="outline"
-                    color="primary"
-                    onClick={() => quickFill('admin')}
-                    style={{ flex: 1, height: '36px', '--border-radius': '10px' }}
-                  >
-                    👑 Admin Fill
-                  </IonButton>
-                  <IonButton
-                    size="small"
-                    fill="outline"
-                    color="secondary"
-                    onClick={() => quickFill('resident')}
-                    style={{ flex: 1, height: '36px', '--border-radius': '10px' }}
-                  >
-                    🧑 Tenant Fill
-                  </IonButton>
-                </div>
-              </div>
             </IonCardContent>
           </IonCard>
         </div>
